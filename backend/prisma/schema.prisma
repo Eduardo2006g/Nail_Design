@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  phone        String?
+  passwordHash String
+  role         Role          @default(CLIENT)
+  appointments Appointment[]
+  promoCodes   PromoCode[]   @relation("UserPromoCodes")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Service {
+  id           String        @id @default(uuid())
+  name         String
+  description  String?
+  price        Float
+  durationMins Int           // Base duration without the safety buffer
+  isActive     Boolean       @default(true)
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Appointment {
+  id           String            @id @default(uuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id])
+  serviceId    String
+  service      Service           @relation(fields: [serviceId], references: [id])
+  status       AppointmentStatus @default(PENDING)
+  startTime    DateTime          // UTC Time
+  endTime      DateTime          // UTC Time (StartTime + Service duration + 15m buffer)
+  totalPrice   Float
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model PortfolioImage {
+  id          String   @id @default(uuid())
+  title       String
+  category    String?
+  url         String
+  createdAt   DateTime @default(now())
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  quantity    Int      @default(0)
+  unit        String   @default("und")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PromoCode {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  userId      String   // The promoter user who generated this code
+  user        User     @relation("UserPromoCodes", fields: [userId], references: [id])
+  discountPct Int      @default(30) // stochastic 30% discount
+  isUsed      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  usedAt      DateTime?
+}

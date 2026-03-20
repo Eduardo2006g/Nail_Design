@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    container_name: nail_design_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: nail_design_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    image: node:20
+    container_name: nail_design_backend
+    volumes:
+      - .:/app
+    working_dir: /app
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://root:rootpassword@postgres:5432/nail_design_db?schema=public
+    command: tail -f /dev/null
+
+volumes:
+  postgres_data:
