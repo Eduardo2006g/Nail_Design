@@ -3,33 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Clock, Sparkles, CalendarHeart } from "lucide-react";
-
-const services = [
-  {
-    title: "Alongamento em Fibra de Vidro",
-    description: "Técnica de excelência que proporciona naturalidade, resistência e durabilidade incomparáveis.",
-    time: "2h 30m",
-    price: "R$ 250",
-  },
-  {
-    title: "Manutenção de Fibra",
-    description: "Renovação do alongamento, tratamento das cutículas e esmaltação em gel perfeita.",
-    time: "1h 45m",
-    price: "R$ 150",
-  },
-  {
-    title: "Banho de Gel",
-    description: "Cobertura protetora de gel sobre as unhas naturais, ideal para quem busca força e crescimento.",
-    time: "1h 15m",
-    price: "R$ 120",
-  },
-  {
-    title: "Esmaltação em Gel",
-    description: "Cores intensas e brilho espelhado que duram até 21 dias sem lascar.",
-    time: "45m",
-    price: "R$ 80",
-  },
-];
+import { getServices } from "@/lib/api";
 
 const portfolio = [
   "/images/unha1.jpeg",
@@ -40,7 +14,22 @@ const portfolio = [
   "/images/unha1.jpeg"
 ];
 
-export default function Home() {
+function formatDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  
+  if (hours > 0 && remainingMinutes > 0) {
+    return `${hours}h ${remainingMinutes}m`;
+  } else if (hours > 0) {
+    return `${hours}h`;
+  } else {
+    return `${remainingMinutes}m`;
+  }
+}
+
+export default async function Home() {
+  const services = await getServices();
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -95,23 +84,31 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {services.map((service, index) => (
-              <Card key={index} className="border-border/50 hover:border-primary/50 transition-colors shadow-sm bg-card">
-                <CardContent className="p-8 flex flex-col h-full">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-xl font-bold text-foreground">{service.title}</h3>
-                    <span className="text-xl font-bold text-primary font-serif">{service.price}</span>
-                  </div>
-                  <p className="text-muted-foreground mb-8 flex-1">
-                    {service.description}
-                  </p>
-                  <div className="flex items-center text-sm font-medium text-muted-foreground">
-                    <Clock className="mr-2 h-4 w-4 text-primary" />
-                    Tempo estimado: {service.time}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {services.length > 0 ? (
+              services.filter(s => s.isActive).map((service) => (
+                <Card key={service.id} className="border-border/50 hover:border-primary/50 transition-colors shadow-sm bg-card">
+                  <CardContent className="p-8 flex flex-col h-full">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-xl font-bold text-foreground">{service.name}</h3>
+                      <span className="text-xl font-bold text-primary font-serif">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(service.price)}
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground mb-8 flex-1">
+                      {service.description}
+                    </p>
+                    <div className="flex items-center text-sm font-medium text-muted-foreground">
+                      <Clock className="mr-2 h-4 w-4 text-primary" />
+                      Tempo estimado: {formatDuration(service.durationMins)}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full text-center p-8 border border-dashed rounded-xl">
+                <p className="text-muted-foreground">Nenhum serviço disponível no momento.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

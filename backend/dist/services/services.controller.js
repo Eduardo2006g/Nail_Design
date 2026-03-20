@@ -29,13 +29,13 @@ let ServicesController = class ServicesController {
         return this.servicesService.findAll();
     }
     findOne(id) {
-        return this.servicesService.findOne(+id);
+        return this.servicesService.findOne(id);
     }
     update(id, updateServiceDto) {
-        return this.servicesService.update(+id, updateServiceDto);
+        return this.servicesService.update(id, updateServiceDto);
     }
     remove(id) {
-        return this.servicesService.remove(+id);
+        return this.servicesService.remove(id);
     }
 };
 exports.ServicesController = ServicesController;
