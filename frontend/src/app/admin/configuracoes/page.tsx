@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pencil, Check, X, Plus, Trash2 } from "lucide-react";
+import { getServices, createService, updateService, deleteService as apiDeleteService, Service as BackendService } from "@/lib/api";
 
 type Service = {
   id: string;
@@ -14,33 +15,92 @@ type Service = {
   price: string;
 };
 
-const initialServices: Service[] = [
-  { id: "fibra", title: "Alongamento em Fibra de Vidro", duration: "2h 30m", price: "250" },
-  { id: "manu", title: "Manutenção de Fibra", duration: "1h 45m", price: "150" },
-  { id: "banho", title: "Banho de Gel", duration: "1h 15m", price: "120" },
-  { id: "esmalte", title: "Esmaltação em Gel", duration: "45m", price: "80" },
-];
+const formatDuration = (mins: number) => {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  return `${m}m`;
+};
+
+const parseDuration = (str: string) => {
+  let mins = 0;
+  const hMatch = str.match(/(\d+)h/i);
+  const mMatch = str.match(/(\d+)m/i);
+  if (hMatch) mins += parseInt(hMatch[1]) * 60;
+  if (mMatch) mins += parseInt(mMatch[1]);
+  return mins || 60;
+};
+
+const mapToFrontendService = (s: BackendService): Service => ({
+  id: s.id,
+  title: s.name,
+  duration: formatDuration(s.durationMins),
+  price: s.price.toString()
+});
 
 export default function ConfiguracoesPage() {
-  const [services, setServices] = useState<Service[]>(initialServices);
+  const [services, setServices] = useState<Service[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Service>>({});
+
+  useEffect(() => {
+    const loadServices = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getServices();
+        setServices(data.map(mapToFrontendService));
+      } catch (error) {
+        console.error("Error loading services", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadServices();
+  }, []);
 
   const startEdit = (svc: Service) => {
     setEditingId(svc.id);
     setEditData({ title: svc.title, duration: svc.duration, price: svc.price });
   };
 
-  const saveEdit = (id: string) => {
-    setServices((svcs) =>
-      svcs.map((s) => (s.id === id ? { ...s, ...editData } : s))
-    );
+  const saveEdit = async (id: string) => {
+    try {
+      const backendData = {
+        name: editData.title,
+        durationMins: parseDuration(editData.duration || "1h"),
+        price: parseFloat(editData.price || "0"),
+      };
+      if (id.startsWith('new-')) {
+        const newBackendService = await createService({ ...backendData, isActive: true });
+        setServices((svcs) => svcs.map((s) => s.id === id ? mapToFrontendService(newBackendService) : s));
+      } else {
+        const updatedService = await updateService(id, backendData);
+        setServices((svcs) => svcs.map((s) => s.id === id ? mapToFrontendService(updatedService) : s));
+      }
+      setEditingId(null);
+    } catch (error) {
+      console.error("Failed to save service", error);
+    }
+  };
+
+  const cancelEdit = () => {
+    if (editingId?.startsWith('new-')) {
+      setServices((svcs) => svcs.filter(s => s.id !== editingId));
+    }
     setEditingId(null);
   };
 
-  const cancelEdit = () => setEditingId(null);
-
-  const deleteService = (id: string) => {
+  const handleDeleteService = async (id: string) => {
+    if (!id.startsWith('new-')) {
+      try {
+        await apiDeleteService(id);
+      } catch (error) {
+        console.error("Failed to delete service", error);
+        return;
+      }
+    }
     setServices((svcs) => svcs.filter((s) => s.id !== id));
   };
 
@@ -132,13 +192,23 @@ export default function ConfiguracoesPage() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/10"
-                      onClick={() => deleteService(svc.id)}
+                      onClick={() => handleDeleteService(svc.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               )
+            )}
+            {isLoading && (
+              <div className="text-center py-8 text-muted-foreground">
+                Carregando serviços...
+              </div>
+            )}
+            {!isLoading && services.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhum serviço cadastrado. Adicione um novo serviço acima.
+              </div>
             )}
           </div>
         </CardContent>

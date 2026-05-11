@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 const services = [
   { id: "fibra", title: "Alongamento Fibra", time: "2h 30m", price: "R$ 250" },
   { id: "manu", title: "Manutenção", time: "1h 45m", price: "R$ 150" },
-  { id: "banho", title: "Banho de Gel", time: "1h 15m", price: "R$ 120" },
+  { id: "banho", title: "Banho de Gel", time: "2h", price: "R$ 120" },
   { id: "esmalte", title: "Esmaltação Gel", time: "45m", price: "R$ 80" },
 ];
 
@@ -42,7 +42,7 @@ export default function BookingPage() {
           <span className={step >= 4 ? "text-primary font-medium" : ""}>Confirmação</span>
         </div>
         <div className="w-full bg-muted h-2 mt-4 rounded-full overflow-hidden">
-          <div 
+          <div
             className="bg-primary h-full transition-all duration-300"
             style={{ width: `${(step / 4) * 100}%` }}
           />
@@ -51,9 +51,9 @@ export default function BookingPage() {
 
       <Card className="border-border/50 shadow-sm relative overflow-hidden">
         {step > 1 && step < 4 && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="absolute top-4 right-4 z-10 rounded-full"
             onClick={prevStep}
           >
@@ -71,14 +71,14 @@ export default function BookingPage() {
               </div>
               <div className="space-y-3">
                 {services.map((svc) => (
-                  <label 
+                  <label
                     key={svc.id}
                     className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedService === svc.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
                   >
                     <div className="flex items-center gap-4">
-                      <input 
-                        type="radio" 
-                        name="service" 
+                      <input
+                        type="radio"
+                        name="service"
                         className="sr-only"
                         checked={selectedService === svc.id}
                         onChange={() => setSelectedService(svc.id)}
@@ -110,7 +110,7 @@ export default function BookingPage() {
                 <CardTitle className="text-2xl font-serif">Escolha o Horário</CardTitle>
                 <CardDescription>Selecione um dia e um horário disponível na agenda.</CardDescription>
               </div>
-              
+
               <div className="mb-6">
                 <h3 className="text-sm font-medium mb-3 text-foreground">Dias Disponíveis</h3>
                 <div className="flex overflow-x-auto pb-2 gap-2 snap-x">
@@ -159,7 +159,7 @@ export default function BookingPage() {
                 <CardTitle className="text-2xl font-serif">Seus Dados</CardTitle>
                 <CardDescription>Preencha suas informações para confirmar a reserva.</CardDescription>
               </div>
-              
+
               <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); nextStep(); }}>
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome Completo</Label>
@@ -193,15 +193,15 @@ export default function BookingPage() {
               <CardDescription className="text-lg mb-8 max-w-sm mx-auto">
                 Tudo certo! Um lembrete foi enviado para o seu WhatsApp. Estamos ansiosos para te receber.
               </CardDescription>
-              
+
               <div className="bg-muted p-6 rounded-2xl mb-8 border border-border/50 text-left max-w-sm mx-auto">
                 <div className="grid grid-cols-2 gap-y-4 text-sm">
                   <div className="text-muted-foreground">Serviço:</div>
                   <div className="font-medium text-foreground text-right">{services.find(s => s.id === selectedService)?.title}</div>
-                  
+
                   <div className="text-muted-foreground">Data e Hora:</div>
                   <div className="font-medium text-foreground text-right">Dia {selectedDate! + 14} às {selectedTime}</div>
-                  
+
                   <div className="col-span-2 pt-4 border-t border-border mt-2 grid grid-cols-2">
                     <div className="text-muted-foreground">Valor Estimado:</div>
                     <div className="font-serif font-bold text-primary text-right text-lg">{services.find(s => s.id === selectedService)?.price}</div>

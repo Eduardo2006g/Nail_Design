@@ -11,7 +11,7 @@ O sistema será composto por um front-end web dinâmico, um back-end API robusto
 *   **Comunicação:** Consome a API REST/GraphQL do back-end.
 
 ### 2. Back-end (API)
-*   **Tecnologia Sugerida:** Node.js com NestJS (ou Express para maior simplicidade), TypeScript, Prisma ORM.
+*   **Tecnologia Sugerida:** Python com Django, Django REST Framework (DRF) e PostgreSQL.
 *   **Responsabilidade:** Centralizar as regras de negócios, gerenciar o banco de dados, calcular estimativas de duração baseadas em serviços compostos, integrar com gateways de pagamento (Pix) e serviços de mensageria (WhatsApp/Email).
 
 ### 3. Banco de Dados
